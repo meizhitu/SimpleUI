@@ -97,11 +97,13 @@ int WINAPI WinMain(HINSTANCE hThisInst,HINSTANCE hPrevInst,LPSTR lpszArgs,int nW
 LRESULT CALLBACK WindowFunc(HWND hwnd,UINT message,WPARAM
 	wParam,LPARAM lParam)
 {
+	static UINT s_uTaskbarRestart;
 	HDC hdc;
 	PAINTSTRUCT ps;
 
 	switch(message){
 	case WM_CREATE:
+		s_uTaskbarRestart = RegisterWindowMessage(TEXT("TaskbarCreated"));
 		g_hbmBall =  (HBITMAP)LoadImage(0,"back.bmp",IMAGE_BITMAP,0,0,LR_LOADFROMFILE); 
 		return 0;
 	case WM_SIZE:
@@ -146,6 +148,18 @@ LRESULT CALLBACK WindowFunc(HWND hwnd,UINT message,WPARAM
 		KillTimer(hwnd,TIMER_REBAR);
 		PostQuitMessage(0);
 		return 0;
+	 default:
+    if(message == s_uTaskbarRestart)
+    {
+    	RECT rc;
+			GetWindowRect(g_rebar, &rc);
+			if (rc.left != g_rcTrayWnd.left+112)
+			{
+				::SetWindowPos(g_rebar, NULL, g_rcTrayWnd.left+112, 0,   
+					rc.right - g_rcTrayWnd.left-112, rc.bottom - rc.top,   
+					SWP_NOZORDER|SWP_NOACTIVATE);
+			}
+  	}
 	}
 	return DefWindowProc(hwnd,message,wParam,lParam);
 }
